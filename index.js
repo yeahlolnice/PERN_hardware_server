@@ -49,7 +49,7 @@ app.put("/items/:id", async(req, res) => {
     try {
         const id = req.params.id;
         const { name, description } = req.body;
-        const updateItem = pool.query("UPDATE hardware SET name = $1, description = $2 WHERE hardware_id = $3", [name, description, id]);
+        const updateItem = await pool.query("UPDATE hardware SET name = $1, description = $2 WHERE hardware_id = $3", [name, description, id]);
         res.json("Item was updated!")
     } catch (err) {
         console.error(err.message)
@@ -60,11 +60,35 @@ app.put("/items/:id", async(req, res) => {
 app.delete("/items/:id", async (req, res) => {
     try {
         const { id } = req.params;
-        const deleteItem = pool.query("DELETE FROM hardware WHERE hardware_id = $1", [id])
+        const deleteItem = await pool.query("DELETE FROM hardware WHERE hardware_id = $1", [id]);
         res.json("Item has been deleted!")
     } catch (err) {
         console.error(err.message);
     }
+});
+
+// Search for an item
+app.get("/items/search/:name", async (req, res) => {
+    try {
+        const name = req.params.name;
+        const searchedItem = await pool.query("SELECT * FROM hardware WHERE name LIKE $1", ['%' + name + '%']);
+        res.json(searchedItem.rows)
+    } catch (err) {
+        console.error(err.message);
+    }
+});
+
+
+// Create USER
+app.post("/users", async (req, res) => {
+try {
+    const username = req.body.username;
+    const password = req.body.password;
+    const user = await pool.query("INSERT INTO users (username, password) VALUES($1, $2) RETURNING *", [username, password]);
+    res.json(user.rows[0]);
+} catch (err) {
+    console.error(err.message);
+}
 });
 
 
